@@ -1,0 +1,6 @@
+# Details for application gateway
+# Backend Pools - name: any, target: ip address or hostname, give Ip details in the text box
+# HTTP settings - name: any , cookie based affinity: Disable, connection draining: Disable , port: , request timeout: , Override backend path: , ...
+# Frontend IP configuration - 
+# Listeners  - Frontend Ip configuration: , Frontend Port
+# Rules - mix of Listeners + Backend Pool + Http settings

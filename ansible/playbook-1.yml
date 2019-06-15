@@ -1,5 +1,5 @@
 ---
-# unix-vm, public-ip, storage
+# public ip, 1 vm, 1 vnet, 1 nsg, 1 nic
 
 - hosts: localhost
   gather_facts: false

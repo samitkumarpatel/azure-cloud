@@ -1,6 +1,11 @@
 ---
-# unix-vm, public-ip, storage
-
+# This will create 
+# 2 storage for vms
+# 1 vnet, 3 subnet 
+# 2 nsg
+# 2 network interface 
+# 2 vms
+# scenario is vm2 can only be ssh from vm1 - which has one public ip
 - hosts: localhost
   gather_facts: false
   tasks:
@@ -36,8 +41,9 @@
         address_prefix: "{{ item.iprange }}"
         virtual_network: vnet001
       with_items:
-        - { name: vnet001, iprange: "10.10.0.0/24" }
-        - { name: vnet002, iprange: "10.10.1.0/24" }
+        - { name: subnet001, iprange: "10.10.0.0/24" }
+        - { name: subnet002, iprange: "10.10.1.0/24" }
+        - { name: subnet003, iprange: "10.10.2.0/24" }
 
     - name: public ip
       azure_rm_publicipaddress:
