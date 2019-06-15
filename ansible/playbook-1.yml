@@ -1,46 +1,48 @@
 ---
+# unix-vm, public-ip, storage
+
 - hosts: localhost
   gather_facts: false
   tasks:
     - name: ping
       ping:
     
-    - name: Create a resource group
+    - name: resource group
       azure_rm_resourcegroup:
         name: Testing
         location: westeurope
         tags:
           testing: testing
     
-    - name: Create storage account
+    - name: storage account
       azure_rm_storageaccount:
         resource_group: Testing
         name: skpstorage001
         account_type: Standard_LRS
     
-    - name: Create virtual network
+    - name: virtual network
       azure_rm_virtualnetwork:
         resource_group: Testing
-        name: testvnet001
+        name: vnet001
         address_prefixes: "10.10.0.0/16"
 
-    - name: Add subnet
+    - name: subnet
       azure_rm_subnet:
         resource_group: Testing
         name: subnet001
         address_prefix: "10.10.0.0/24"
-        virtual_network: testvnet001
+        virtual_network: vnet001
 
-    - name: Create public ip
+    - name: public ip
       azure_rm_publicipaddress:
         resource_group: Testing
         allocation_method: Static
         name: publicip001
 
-    - name: Create security group that allows SSH
+    - name: network security group that allows SSH
       azure_rm_securitygroup:
         resource_group: Testing
-        name: secgroup001
+        name: nsg001
         rules:
           - name: SSH
             protocol: Tcp
@@ -48,33 +50,45 @@
             access: Allow
             priority: 101
             direction: Inbound
+          - name: HTTP_80
+            protocol: "*"
+            destination_port_range: 80
+            access: Allow
+            priority: 102
+            direction: Inbound
     
-    - name: Create NIC
+    - name: network interface
       azure_rm_networkinterface:
         resource_group: Testing
-        name: testnic001
-        virtual_network: testvnet001
+        name: nic001
+        virtual_network: vnet001
         subnet: subnet001
         public_ip_name: publicip001
-        security_group: secgroup001
+        security_group: nsg001
 
-    - name: Create virtual machine
+    - name: virtual machine
       azure_rm_virtualmachine:
         resource_group: Testing
-        name: testvm001
+        name: vm001
         vm_size: Standard_D2s_v3
         storage_account: skpstorage001
-        storage_container: testvm001
-        storage_blob: testvm001.vhd
+        storage_container: vm001
+        storage_blob: vm001.vhd
         admin_username: lab_admin
         admin_password: lab_admin123
-        network_interfaces: testnic001
+        network_interfaces: nic001
         image:
           offer: CentOS
           publisher: OpenLogic
           sku: 7.6
           version: latest
-    - name: create a private area bolck
+    
+    - name: clean Up
       block:
-        - ping:
-      tags: never
+        - name: Delete the resource group
+          azure_rm_resourcegroup:
+            name: Testing
+            state: absent
+      tags: 
+        - never
+        - clean

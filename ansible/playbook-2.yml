@@ -1,0 +1,137 @@
+---
+# unix-vm, public-ip, storage
+
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: ping
+      ping:
+    
+    - name: resource group
+      azure_rm_resourcegroup:
+        name: lab002
+        location: westeurope
+        tags:
+          lab002: lab002
+    
+    - name: storage account
+      azure_rm_storageaccount:
+        resource_group: lab002
+        name: "{{ item }}"
+        account_type: Standard_LRS
+      with_items:
+        - skpstorage001
+        - skpstorage002
+    
+    - name: virtual network
+      azure_rm_virtualnetwork:
+        resource_group: lab002
+        name: vnet001
+        address_prefixes: "10.10.0.0/16"
+
+    - name: subnet
+      azure_rm_subnet:
+        resource_group: lab002
+        name: "{{ item.name }}"
+        address_prefix: "{{ item.iprange }}"
+        virtual_network: vnet001
+      with_items:
+        - { name: vnet001, iprange: "10.10.0.0/24" }
+        - { name: vnet002, iprange: "10.10.1.0/24" }
+
+    - name: public ip
+      azure_rm_publicipaddress:
+        resource_group: lab002
+        allocation_method: Static
+        name: publicip001
+
+    - name: network security group that allows SSH
+      azure_rm_securitygroup:
+        resource_group: lab002
+        name: nsg001
+        rules:
+          - name: SSH
+            protocol: Tcp
+            destination_port_range: 22
+            access: Allow
+            priority: 101
+            direction: Inbound
+          
+    - name: network security group that allows SSH and HTTP 80
+      azure_rm_securitygroup:
+        resource_group: lab002
+        name: nsg002
+        rules:
+          - name: SSH
+            protocol: Tcp
+            destination_port_range: 22
+            access: Allow
+            priority: 101
+            direction: Inbound
+          - name: HTTP_80
+            protocol: "*"
+            destination_port_range: 80
+            access: Allow
+            priority: 102
+            direction: Inbound
+
+    - name: network interface for vm001
+      azure_rm_networkinterface:
+        resource_group: lab002
+        name: nic001
+        virtual_network: vnet001
+        subnet: subnet001
+        public_ip_name: publicip001
+        security_group: nsg001
+
+    - name: network interface for vm002
+      azure_rm_networkinterface:
+        resource_group: lab002
+        name: nic002
+        virtual_network: vnet001
+        subnet: subnet002
+        security_group: nsg002
+
+    - name: virtual machine -1 
+      azure_rm_virtualmachine:
+        resource_group: lab002
+        name: vm001
+        vm_size: Standard_D2s_v3
+        storage_account: skpstorage001
+        storage_container: vm001
+        storage_blob: vm001.vhd
+        admin_username: lab_admin
+        admin_password: lab_admin123
+        network_interfaces: nic001
+        image:
+          offer: CentOS
+          publisher: OpenLogic
+          sku: 7.6
+          version: latest
+    
+    - name: virtual machine -2 
+      azure_rm_virtualmachine:
+        resource_group: lab002
+        name: vm002
+        vm_size: Standard_D2s_v3
+        storage_account: skpstorage002
+        storage_container: vm002
+        storage_blob: vm002.vhd
+        admin_username: lab_admin
+        admin_password: lab_admin123
+        network_interfaces: nic002
+        image:
+          offer: CentOS
+          publisher: OpenLogic
+          sku: 7.6
+          version: latest
+
+    - name: clean Up
+      block:
+        - name: Delete the resource group
+          azure_rm_resourcegroup:
+            name: lab002
+            state: absent
+      tags: 
+        - never
+        - clean
