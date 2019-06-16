@@ -1,0 +1,22 @@
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: ping
+      ping:
+    - name: Create Azure Deploy
+      azure_rm_deployment:
+        resource_group: lab002
+        name: lab002Deployment
+        template:
+          $schema: "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
+          contentVersion: "1.0.0.0"
+          variables:
+            location: "westeurope"
+            storageAccountType: "Standard_LRS"
+          resources:
+            - type: "Microsoft.Storage/storageAccounts"
+              name: "skpstorage002"
+              apiVersion: "2015-05-01-preview"
+              location: "[variables('location')]"
+              properties:
+                accountType: "[variables('storageAccountType')]"
