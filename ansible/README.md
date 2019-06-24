@@ -25,3 +25,18 @@ client_id=XXXXXXXX
 secret=XXXXXX
 tenant=XXXXXX
 ```
+
+### working with `azure_rm_deployment`
+* Create some resources by using https://portal.azure.com
+* Than navigate https://resources.azure.com --> expand resourceGroup
+* convert JSON to YML and put that under `template` 
+```
+azure_rm_deployment:
+    state: "{{state}}"
+    resource_group_name: "lab001"
+    template:
+        $schema: "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
+        -
+        -
+```
+* like wise you can create a custom template and make a use in your automation.
