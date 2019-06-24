@@ -1,0 +1,70 @@
+- hosts: localhost
+  gather_facts: false
+  vars:
+    state: "{{ state | default('present')}}"
+  tasks:
+    - name: ping
+      ping:
+    
+    - name: Create Azure Deploy
+      azure_rm_deployment:
+        state: "{{state}}"
+        resource_group_name: "lab001"
+        template:
+          $schema: "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
+          contentVersion: "1.0.0.0"
+          variables:
+            location: "westeurope"
+          resources:
+            - apiVersion: '2015-06-15'
+              type: Microsoft.Network/networkSecurityGroups
+              name: "nsg001"
+              location: "[variables('location')]"
+              tags: 
+                "env" : "lab"
+              properties:
+                securityRules:
+                  - name: "port_22"
+                    properties:
+                      protocol: "*"
+                      sourcePortRange: "*"
+                      destinationPortRange: "22"
+                      sourceAddressPrefix: "*"
+                      destinationAddressPrefix: "*"
+                      access: "Allow"
+                      priority: 100
+                      direction: "Inbound"
+                  - name: "port_80"
+                    properties:
+                      protocol: "*"
+                      sourcePortRange: "*"
+                      destinationPortRange: "80"
+                      sourceAddressPrefix: "*"
+                      destinationAddressPrefix: "*"
+                      access: "Allow"
+                      priority: 101
+                      direction: "Inbound"
+            
+            - type: Microsoft.Network/virtualNetworks
+              name: "vnet001"
+              apiVersion: '2015-06-15'
+              location: "[variables('location')]"
+              tags: 
+                "env" : "lab"
+              properties:
+                addressSpace:
+                  addressPrefixes:
+                    - "10.0.0.0/8"
+                subnets:
+                  - name: "snet001"
+                    properties:
+                      addressPrefix: "10.0.0.0/24"
+                      networkSecurityGroup: 
+                        id: "[resourceId( 'Microsoft.Network/networkSecurityGroups', 'nsg001' )]"
+                  - name: "snet002"
+                    properties:
+                      addressPrefix: "10.0.1.0/24"
+                      networkSecurityGroup: 
+                        id: "[resourceId( 'Microsoft.Network/networkSecurityGroups', 'nsg001' )]"
+                enableDdosProtection: false
+                enableVmProtection: false
