@@ -12,10 +12,10 @@
 * Go to Subscription
 * Click on the active subscription - if you have multi subscription.
 * `Access Control (IAM)` --> `+Add` --> `Add role assignment`
-* fill `select a role` to contributor
-* keep `assign access to ` - Azure DA User, group or service principle
+* fill `select a role` from the list choose `contributor`
+* keep `assign access to ` - from the list choose - `Azure DA User, group or service principle`
 * search for the name , which you created as part of `Azure Active Directory` --> `App Registration` flow
-* once all done from the `Azure Active Directory` --> `App Registration` flow , you can get Client Id, tenent Id, client Secreat cab also be generate by clicking `Certificates & Secrets` menu on the side menu bar
+* once all done from the `Azure Active Directory` --> `App Registration` flow , you can get Client Id, tenent Id, client Secreat can also be generate by clicking `Certificates & Secrets` menu on the side menu bar
 * create an credential file on `~/.azure/credentials` location. 
 * example of `~/.azure/credentials` file
 ```

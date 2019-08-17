@@ -1,0 +1,68 @@
+- hosts: controller
+  become: true
+  vars:
+    docker_version: ""
+  handlers:
+    - name: upgrade yum
+      yum:
+        name: '*'
+        state: latest
+      listen: "update"
+  tasks:
+    - name: ping test
+      ping:
+      notify:
+        - upgrade yum
+    - name: ensure a list of init packages installed
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+          - yum-utils 
+          - device-mapper-persistent-data
+          - lvm2
+          - centos-release-scl
+          - python
+    - name: adding docker repo
+      shell: sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      notify:
+        - upgrade yum
+    - name: ensure a list of docker packages installed
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+          - docker-ce
+          - docker-ce-cli
+          - git
+    - name: Add user with specific group
+      user:
+        name: controller
+        password: "{{ ansible_password | password_hash('sha512') }}"
+        groups:
+          - lab_admin
+          - docker
+      register: o
+    - debug:
+        msg: "{{ o }}"
+    - name: enable docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+    - name: create installation volume
+      file:
+        path: /home/controller/jenkins_home
+        state: directory
+    - name: checkout CI/CD tools 
+      git:
+        repo: https://github.com/samitkumarpatel/ci-cd-setup.git
+        dest: /home/controller/jenkins_home
+    - shell: "docker rm -f controller_jenkins"
+      ignore_errors: true
+    
+    - name: start jenkins
+      shell: docker run -d --name controller_jenkins -p 8080:8080 -v /home/controller/jenkins_home/jenkins/init.groovy.d:/usr/share/jenkins/ref/init.groovy.d --env JAVA_OPTS="-Djenkins.install.runSetupWizard=false" jenkins/jenkins:lts
+      register: od
+    - debug:
+        msg: "{{ od }}"

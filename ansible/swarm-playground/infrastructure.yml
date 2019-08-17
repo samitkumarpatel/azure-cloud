@@ -1,0 +1,132 @@
+- hosts: localhost
+  gather_facts: false
+  vars:
+    resource_group: swarm-rg01
+    location: westeurope
+    vnet: vnet01
+    adminuser: lab_admin
+    adminpass: lab_admin123
+  tasks:
+    - name: ping
+      ping:
+    
+    - name: Resource Group
+      azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        location: "{{ location }}"
+        tags: 
+          lab: "002"
+          env: "dev"
+    
+    - name: virtual network
+      azure_rm_virtualnetwork:
+        resource_group: "{{ resource_group }}"
+        name: "{{ vnet }}"
+        address_prefixes: "10.10.0.0/16"
+
+    - name: subnet
+      azure_rm_subnet:
+        resource_group: "{{ resource_group }}"
+        name: "{{ item.name }}"
+        address_prefix: "{{ item.iprange }}"
+        virtual_network: "{{ vnet }}"
+      with_items:
+        - { name: "snet-controller", iprange: "10.10.0.0/24" }
+        - { name: "snet-vm", iprange: "10.10.1.0/24" }
+        - { name: "snet-ag", iprange: "10.10.2.0/24" }
+    
+    - name: network security group
+      azure_rm_securitygroup:
+        resource_group: "{{ resource_group }}"
+        name: "{{ item.name}}"
+        rules: "{{ item.rules | default([]) }}"
+      with_items:
+        - name: "nsg-vm"
+        - name: "nsg-controller"
+          rules:
+            - name: SSH
+              protocol: Tcp
+              destination_port_range: 22
+              access: Allow
+              priority: 101
+              direction: Inbound
+            - name: port_8080
+              protocol: Tcp
+              destination_port_range: 8080
+              access: Allow
+              priority: 110
+              direction: Inbound
+        - name: "nsg-ag"
+          rules:
+            - name: appgatway_rule
+              description: Port Ranges for Application Gateway
+              protocol: "*"
+              source_port_range: "*"
+              destination_port_range: 65503-65534
+              source_address_prefix: "*"
+              destination_address_prefix: "VirtualNetwork"
+              access: Allow
+              priority: 150
+              direction: Inbound
+            - name: port_443
+              description: Open Application Gateway port 443
+              protocol: "*"
+              source_port_range: "*"
+              destination_port_range: 443
+              source_address_prefix: "*"
+              destination_address_prefix: "*"
+              access: Allow
+              priority: 160
+              direction: Inbound
+    
+    - name: public ip
+      azure_rm_publicipaddress:
+        resource_group: "{{ resource_group }}"
+        allocation_method: Static
+        name: "{{ item }}"
+      with_items:
+        - "pip-controller"
+        - "pip-ag"
+    
+    - name: network interface
+      azure_rm_networkinterface:
+        resource_group: "{{ resource_group }}"
+        name: "{{ item.name }}"
+        virtual_network: "{{ vnet }}"
+        subnet: "{{ item.snet }}"
+        public_ip_name: "{{ item.pip }}"
+        security_group: "{{ item.nsg }}"
+      with_items:
+        - { name: "ni-controller", snet: "snet-controller", pip: "pip-controller", nsg: "nsg-controller" }
+        - { name: "ni-vm01", snet: "snet-vm", pip: "", nsg: "nsg-vm" }
+        - { name: "ni-vm02",snet: "snet-vm", pip: "", nsg: "nsg-vm" }
+    
+    - name: storage for vm
+      azure_rm_storageaccount:
+        resource_group: "{{ resource_group }}"
+        name: "{{ item }}"
+        account_type: Standard_LRS
+      with_items:
+        - skpstorage01
+        - skpstaticstorage02
+
+    - name: virtual machine 
+      azure_rm_virtualmachine:
+        resource_group: "{{ resource_group }}"
+        name: "{{ item.name }}"
+        vm_size: Standard_D2s_v3
+        storage_account: "{{ item.storage }}"
+        storage_container: "{{ item.name }}"
+        storage_blob: "{{ item.name }}.vhd"
+        admin_username: "{{ adminuser }}"
+        admin_password: "{{ adminpass }}"
+        network_interfaces: "{{ item.nic }}"
+        image:
+          offer: CentOS
+          publisher: OpenLogic
+          sku: 7.6
+          version: latest
+      with_items:
+        - { name: "vm01", storage: "skpstorage01", nic: "ni-controller" }
+        - { name: "vm02", storage: "skpstorage01", nic: "ni-vm01" }
+        - { name: "vm03", storage: "skpstorage01", nic: "ni-vm02" }
