@@ -1,0 +1,30 @@
+- hosts: controller
+  vars:
+    ansible_user: controller
+  tasks:
+    - name: pip dependency
+      pip:
+        name: virtualenv
+        extra_args: --user
+    - name: create installation volume
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: u=rw,g=rw,o=rw
+      with_items:
+        - jenkins_home
+        - init.d
+        - slave
+    - name: checkout CI/CD tools 
+      git:
+        repo: https://github.com/samitkumarpatel/ci-cd-setup.git
+        dest: init.d
+    - shell: "docker rm -f controller_jenkins"
+      ignore_errors: true
+    
+    - name: start jenkins
+      shell: docker run -d --name controller_jenkins -p 8080:8080 -v /home/controller/jenkins_home:/var/jenkins_home -v /home/controller/init.d/jenkins/init.groovy.d:/usr/share/jenkins/ref/init.groovy.d --env JAVA_OPTS="-Djenkins.install.runSetupWizard=false" jenkins/jenkins:lts
+      register: od
+    
+    - debug:
+        msg: "{{ od }}"

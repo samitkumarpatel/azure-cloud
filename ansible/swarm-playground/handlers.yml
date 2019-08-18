@@ -1,0 +1,6 @@
+---
+- name: upgrade yum
+  yum:
+    name: '*'
+    state: latest
+  listen: "update"

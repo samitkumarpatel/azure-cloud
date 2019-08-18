@@ -1,0 +1,49 @@
+---
+- name: ping test
+  ping:
+  notify:
+    - upgrade yum
+- name: ensure a list of init packages installed
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - yum-utils 
+      - device-mapper-persistent-data
+      - lvm2
+      - centos-release-scl
+      - python
+      - epel-release
+      - python-pip
+- name: adding docker repo
+  shell: sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  notify: upgrade yum
+- name: ensure a list of docker packages installed
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - docker-ce
+      - docker-ce-cli
+      - docker-compose
+      - git
+      - ansible
+      - java-1.8.0-openjdk-devel
+
+- name: Add user with specific group
+  user:
+    name: "{{ item }}"
+    password: "{{ ansible_password | password_hash('sha512') }}"
+    generate_ssh_key: yes
+    groups:
+      - lab_admin
+      - docker
+  with_items:
+    - controller
+    - "{{ ansible_user }}"
+  register: o
+- name: enable docker
+  systemd:
+    name: docker
+    state: started
+    enabled: yes

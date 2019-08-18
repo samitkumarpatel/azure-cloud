@@ -1,0 +1,13 @@
+- hosts: controller
+  become: true
+  vars:
+    ansible_user: lab_admin
+  handlers:
+  - name: upgrade yum
+    yum:
+      name: '*'
+      state: latest
+    listen: "update"
+  tasks:
+  - name: install basic package for centos
+    include_tasks: centos-package.yml
