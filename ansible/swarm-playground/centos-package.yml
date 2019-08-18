@@ -14,7 +14,6 @@
       - centos-release-scl
       - python
       - epel-release
-      - python-pip
 - name: adding docker repo
   shell: sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
   notify: upgrade yum
@@ -26,9 +25,11 @@
       - docker-ce
       - docker-ce-cli
       - docker-compose
+      - python-pip
       - git
       - ansible
       - java-1.8.0-openjdk-devel
+      - sshpass
 
 - name: Add user with specific group
   user:
