@@ -1,0 +1,61 @@
+---
+# App Services Provision
+# App Service plans + App Service web/container = App Services
+- hosts: localhost
+  gather_facts: false
+  vars:
+    resource_group: tutorial01
+    app_service_plan: tutorial-appservice-plan01
+    webapp_name: samittutorial-app01
+    docker_container_name_tag: nginx
+  tasks:
+    - name: ping
+      ping:
+    
+    - name: Create a resource group
+      azure_rm_resourcegroup:
+        name: "{{ resource_group }}"
+        location: westeurope
+        tags:
+            testing: testing
+    
+    - name: Create a linux app service plan
+      azure_rm_appserviceplan:
+        resource_group: "{{ resource_group }}"
+        name: "{{ app_service_plan }}"
+        location: westeurope
+        sku: S1
+        is_linux: true
+        number_of_workers: '1'
+    
+    - name: Create a docker web app with private acr registry
+      azure_rm_webapp:
+        resource_group: "{{ resource_group }}"
+        name: "{{ webapp_name }}"
+        plan: "{{ app_service_plan }}"
+        app_settings:
+          testkey: testvalue
+        container_settings:
+          name: nginx
+    
+    - name: Create a webapp slot
+      azure_rm_webappslot:
+        resource_group: "{{ resource_group }}"
+        webapp_name: "{{ webapp_name }}"
+        name: stage
+        configuration_source: "{{ webapp_name }}"
+        app_settings:
+          testkey: testvalue
+        container_settings:
+          name: samitkumarpatel/helloworld-ms:latest
+
+    - name: swap the slot with production slot
+      azure_rm_webappslot:
+        resource_group: "{{ resource_group }}"
+        webapp_name: "{{ webapp_name }}"
+        name: stage
+        swap:
+          action: swap
+      tags:
+        - swap
+        - never
