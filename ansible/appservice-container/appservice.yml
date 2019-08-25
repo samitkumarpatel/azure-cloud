@@ -1,0 +1,112 @@
+---
+# App Services
+# App Service plans + App Service web/container = App Services
+- hosts: localhost
+  gather_facts: false
+  vars:
+    resource_group: "appservice-rg01"
+    server_farm_name: "appservice_plan02"
+    location: "West Europe"
+  tasks:
+    - name: ping
+      ping:
+    - name: Create Azure Deploy
+      azure_rm_deployment:
+        state: present
+        resource_group_name: "{{ resource_group }}"
+        template:
+          $schema: "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
+          contentVersion: "1.0.0.0"
+          resources:
+            - type: "Microsoft.Web/serverfarms"
+              apiVersion: "2016-09-01"
+              name: "{{ server_farm_name }}"
+              location: "{{ location }}"
+              kind: "linux"
+              sku:
+                name: "P1v2"
+                tier: "PremiumV2"
+                size: "P1v2"
+                family: "Pv2"
+                capacity: 1
+              properties: 
+                name: "{{server_farm_name}}"
+                workerSize: "D1"
+                workerSizeId: 3
+                perSiteScaling: false
+                reserved: true
+                targetWorkerCount: 0
+                targetWorkerSizeId: 0
+            - type: "Microsoft.Web/sites"
+              apiVersion: "2016-08-01"
+              name: "[parameters('sites_helloworls_ms_prod_name')]"
+              location: "West Europe"
+              kind: "app,linux,container"
+              properties:
+                enabled: true
+                serverFarmId": "[parameters('serverfarms_appservice_plan01_externalid')]"
+                reserved: true
+                scmSiteAlsoStopped: false
+                clientAffinityEnabled: false
+                clientCertEnabled: false
+                hostNamesDisabled: false
+                containerSize: 0
+                dailyMemoryTimeQuota: 0
+                httpsOnly: false
+            - type: "Microsoft.Web/sites/config"
+              apiVersion": "2016-08-01"
+              name": "[concat(parameters('sites_helloworls_ms_prod_name'), '/web')]"
+              location": "West Europe"
+              dependsOn": 
+                - "[resourceId('Microsoft.Web/sites', parameters('sites_helloworls_ms_prod_name'))]"
+              properties:
+                numberOfWorkers: 1
+                linuxFxVersion: "DOCKER|samitkumarpatel/helloworld-ms:latest"
+            - type: "Microsoft.Web/sites/hostNameBindings"
+              apiVersion: "2016-08-01"
+              name: "[concat(parameters('sites_helloworls_ms_prod_name'), '/', parameters('sites_helloworls_ms_prod_name'), '.azurewebsites.net')]"
+              location: "West Europe"
+              dependsOn:
+                - "[resourceId('Microsoft.Web/sites', parameters('sites_helloworls_ms_prod_name'))]"
+              properties:
+                siteName": "helloworls-ms-prod"
+                hostNameType": "Verified"
+            - type: "Microsoft.Web/sites/slots"
+              apiVersion: "2016-08-01"
+              name: "[concat(parameters('sites_helloworls_ms_prod_name'), '/staging')]"
+              location: "West Europe"
+              dependsOn: 
+                - "[resourceId('Microsoft.Web/sites', parameters('sites_helloworls_ms_prod_name'))]"
+              kind: "app,linux,container"
+              properties:
+                enabled: true
+                hostNameSslStates:
+                  - name: "helloworls-ms-prod-staging.azurewebsites.net"
+                    sslState: "Disabled"
+                    hostType: "Standard"
+                  - name: "helloworls-ms-prod-staging.scm.azurewebsites.net"
+                    sslState: "Disabled"
+                    hostType: "Repository"
+                serverFarmId: "[parameters('serverfarms_appservice_plan01_externalid')]"
+                reserved: true
+            - type: "Microsoft.Web/sites/slots/config"
+              apiVersion: "2016-08-01"
+              name: "[concat(parameters('sites_helloworls_ms_prod_name'), '/staging/web')]"
+              location: "West Europe"
+              dependsOn:
+                - "[resourceId('Microsoft.Web/sites/slots', parameters('sites_helloworls_ms_prod_name'), 'staging')]"
+                - "[resourceId('Microsoft.Web/sites', parameters('sites_helloworls_ms_prod_name'))]"
+              properties:
+                numberOfWorkers: 1
+                linuxFxVersion: "DOCKER|nginx:latest"
+            - type: "Microsoft.Web/sites/slots/hostNameBindings"
+              apiVersion": "2016-08-01"
+              name": "[concat(parameters('sites_helloworls_ms_prod_name'), '/staging/', parameters('sites_helloworls_ms_prod_name'), '-staging.azurewebsites.net')]"
+              location": "West Europe"
+              dependsOn":
+                - "[resourceId('Microsoft.Web/sites/slots', parameters('sites_helloworls_ms_prod_name'), 'staging')]"
+                - "[resourceId('Microsoft.Web/sites', parameters('sites_helloworls_ms_prod_name'))]"
+              properties:
+                siteName: "helloworls-ms-prod(staging)"
+                hostNameType: "Verified"
+            

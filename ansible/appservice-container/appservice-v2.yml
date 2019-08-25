@@ -1,0 +1,77 @@
+---
+# App Services
+# App Service plans + App Service web/container = App Services
+- hosts: localhost
+  gather_facts: false
+  vars:
+    resource_group: "tutorial01"
+  tasks:
+    - name: Ping
+      ping:
+    - name: App Service Plan
+      azure_rm_deployment:
+        state: present
+        resource_group_name: "{{ resource_group }}"
+        template:
+          $schema: "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
+          contentVersion: "1.0.0.0"
+          resources:
+            - type: "Microsoft.Web/serverfarms"
+              apiVersion: "2016-09-01"
+              name: "appservice-plan01"
+              location: "West Europe"
+              kind: linux
+              tags:
+                "environment": "development"
+                "SelfManaged": "Yes"
+              properties:
+                name: "appservice-plan01"
+                reserved: true
+                sku:
+                  name: "P1v2"
+                  tier: "PremiumV2"
+                  size: "P1v2"
+                  family: "Pv2"
+                  capacity: 1
+    - name: Web App for Container
+      azure_rm_deployment:
+        state: present
+        resource_group_name: "{{ resource_group }}"
+        template:
+          $schema: "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
+          contentVersion: "1.0.0.0"
+          resources:
+            - type: "Microsoft.Web/sites"
+              apiVersion: "2016-08-01"
+              name: "tutorial-app01"
+              location: "West Europe"
+              tags:
+                "environment": "development"
+                "SelfManaged": "Yes"
+              kind: "app,linux,container"
+              properties:
+                enabled: true
+                serverFarmId: ""
+                hostNameSslStates:
+                  name: "tutorial-app01.azurewebsites.net"
+            - type: "Microsoft.Web/sites/config"
+              apiVersion: "2016-08-01"
+              name: "tutorial-app01/web"
+              location: "West Europe"
+              dependsOn:
+                - "[resourceId('Microsoft.Web/sites', 'tutorial-app01')]"
+              tags:
+                "environment": "development"
+                "SelfManaged": "Yes"
+              properties:
+                linuxFxVersion: "DOCKER|nginx"
+            - type: "Microsoft.Web/sites/hostNameBindings"
+              apiVersion: "2016-08-01"
+              name: "tutorial-app01/tutorial-app01.azurewebsites.net"
+              location: "West Europe"
+              dependsOn: 
+                - "[resourceId('Microsoft.Web/sites', 'tutorial-app01')]"
+              properties:
+                siteName: "tutorial-app01"
+
+                    
