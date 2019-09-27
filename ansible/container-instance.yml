@@ -1,44 +1,48 @@
-- hosts: local
+- hosts: localhost
   tasks:
-    - name: Create Azure Deploy
+    - name: Azure Container Instance
       azure_rm_deployment:
-        resource_group: tutorial01
-        name: tutorial01
+        resource_group: tutorial02
+        name: Deployment-ContainerInstance
         template:
-          $schema: "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#"
-          contentVersion: "1.0.0.0"
+          $schema : https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#
+          contentVersion: 1.0.0.0
           variables:
-            container1name: "hellofiles"
-            container1image: "mcr.microsoft.com/azuredocs/aci-hellofiles"
+            container1name: jenkins
+            container1image: jenkins/jenkins:2.197
+            location: "westeurope"
           resources:
-            name: "file-share-demo"
-            type: "Microsoft.ContainerInstance/containerGroups"
-            apiVersion: "2018-10-01"
-            location: "[resourceGroup().location]"
+          - type: Microsoft.ContainerInstance/containerGroups
+            apiVersion: '2018-10-01'
+            name: "[variables('container1name')]"
+            location: "[variables('location')]"
             properties:
               containers:
-                - name: "[variables('container1name')]"
-                  properties:
-                    image: "[variables('container1image')]"
-                    resources:
-                      requests:
-                        cpu: 1
-                        memoryInGb: 1.5
+              - name: "[variables('container1name')]"
+                properties:
+                  image: "[variables('container1image')]"
+                  resources:
+                    requests:
+                      cpu: 1
+                      memoryInGb: 1.5
                   ports:
-                    port:
+                  - port: 8080
+                  - port: 50000
                   volumeMounts:
-                    name: "filesharevolume"
-                    mountPath: "/aci/logs"
-              osType: "Linux"
+                  - name: jenkins-home
+                    mountPath: "/var/jenkins_home"
+              osType: Linux
               ipAddress:
-                type: "Public"
+                type: Public
                 ports:
-                  - protocol: "tcp"
-                    port: 80
-                dnsNameLabel: "aci-demo"
+                - protocol: tcp
+                  port: '8080'
+                - protocol: tcp
+                  port: '50000'
+                dnsNameLabel: jenkins02
               volumes:
-                - name: "filesharevolume"
-                  azureFile:
-                    shareName: "acishare"
-                    storageAccountName: "<Storage account name>"
-                    storageAccountKey: "<Storage account key>"
+              - name: jenkins-home
+                azureFile:
+                  shareName: file02
+                  storageAccountName: "storage3ssxhgxh47zs2"
+                  storageAccountKey: "1xR52h0sBvBDetTaBoQP7J2odHqvJsU7V8RIOt+FahFosg7l/bVwoZVvQ8i8+0dzk/ikg1W2+sO+3yqN9qtjcQ=="

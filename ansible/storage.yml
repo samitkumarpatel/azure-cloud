@@ -1,0 +1,35 @@
+- hosts: localhost
+  tasks:
+    - name: Azure Storage
+      azure_rm_deployment:
+        resource_group: tutorial02
+        name: Deployment-Storage
+        template:
+          $schema: https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#
+          contentVersion: 1.0.0.0
+          variables:
+            storageAccountName: "[concat('storage', uniqueString(resourceGroup().id))]"
+            fileShareName01: "file01"
+            fileShareName02: "file02"
+            location: "westeurope"
+          resources:
+          - type: Microsoft.Storage/storageAccounts
+            apiVersion: '2018-07-01'
+            name: "[variables('storageAccountName')]"
+            location: "[variables('location')]"
+            kind: StorageV2
+            sku:
+              name: Standard_LRS
+              tier: Standard
+            properties:
+              accessTier: Hot
+          - type: Microsoft.Storage/storageAccounts/fileServices/shares
+            apiVersion: '2019-04-01'
+            name: "[concat(variables('storageAccountName'), '/default/', variables('fileShareName01'))]"
+            dependsOn:
+            - "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+          - type: Microsoft.Storage/storageAccounts/fileServices/shares
+            apiVersion: '2019-04-01'
+            name: "[concat(variables('storageAccountName'), '/default/', variables('fileShareName02'))]"
+            dependsOn:
+            - "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
