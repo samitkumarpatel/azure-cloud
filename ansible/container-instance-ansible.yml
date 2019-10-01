@@ -1,0 +1,46 @@
+---
+- hosts: localhost
+  vars:
+    resource_group_name: tutorial02
+  tasks:
+    - name: Create a resource group
+      azure_rm_resourcegroup:
+        name: "{{ resource_group_name }}"
+        location: westeurope
+        tags:
+          environment: development
+    - name: Create sample container group
+      azure_rm_containerinstance:
+        resource_group: "{{ resource_group_name }}"
+        name: tools
+        os_type: linux
+        ip_address: public
+        ports:
+        - 80
+        - 8080
+        - 50000
+        - 9000
+        - 8081
+        containers:
+        - name: nginx
+          image: nginx:latest
+          memory: 1.5
+          ports:
+          - 80
+        - name: jenkins
+          image: jenkins/jenkins:latest
+          memory: 2
+          ports:
+          - 8080
+          - 50000
+        - name: sonarqube
+          image: sonarqube
+          memory: 2
+          ports:
+          - 9000
+        - name: nexus
+          image: sonatype/nexus3
+          memory: 2
+          cpu: 4
+          ports:
+          - 8081
