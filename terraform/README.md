@@ -1,14 +1,20 @@
 ### Terraform
 
 **Installation**
--
+
+Please follow official documents.
 
 **Useful links**
+
 [Official Learning page from Terraform](https://learn.hashicorp.com/terraform/getting-started)
+
+-
 
 [Terraform 0.12 changes](https://www.terraform.io/docs/configuration/)
 
+
 **Tutorial**
+
 Terraform only recognise a file with extensation `.tf` `.tfvars`
 
 as a initial start I have below structure 
@@ -70,7 +76,7 @@ Storing provider related credential in source controll is not at all an option, 
 
 *procedure-1*
 
-Create an env file and keep the details there. make sure the env variable has to be get from terraform official docs
+Create an env file and keep the details there. The below env variable are specific to azure provider and it will not workfor other module. other module related env variable name can be found in the official docs.
 
 ```
 export ARM_SUBSCRIPTION_ID="xxxxx-xxxxx-xxxxx-xxxxx"
