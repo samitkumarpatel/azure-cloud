@@ -7,11 +7,11 @@ variable "location" {
 }
 
 resource "azurerm_resource_group" "test" {
-    name        = "tutorial-rg01"
-    location    = var.location
-    tags = {
-        environment = "test",
-    }
+  name        = "tutorial-rg01"
+  location    = var.location
+  tags = {
+      environment = "test",
+  }
 }
 resource "azurerm_storage_account" "test" {
   name                     = "storage345xxxcccddd"
@@ -33,7 +33,7 @@ output "primary_access_key" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "jenkins-home01"
+  name                 = "jenkins01"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 50
 }
@@ -56,12 +56,16 @@ resource "azurerm_container_group" "test" {
       port     = 8080
       protocol = "TCP"
     }
-    
+    ports {
+      port     = 50000
+      protocol = "TCP"
+    }
+
     volume {
-      name          = "JenkinsHome"
+      name          = "jenkins01"
       mount_path    = "/var/jenkins_home"
       storage_account_name = azurerm_storage_account.test.name
-      storage_account_key = ?.primary_access_key
+      storage_account_key = azurerm_storage_account.test.primary_access_key
       share_name = azurerm_storage_share.test.name
     }
   }

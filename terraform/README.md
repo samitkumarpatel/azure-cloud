@@ -8,11 +8,9 @@ Please follow official documents.
 
 [Official Learning page from Terraform](https://learn.hashicorp.com/terraform/getting-started)
 
--
-
 [Terraform 0.12 changes](https://www.terraform.io/docs/configuration/)
 
-
+---
 **Tutorial**
 
 Terraform only recognise a file with extensation `.tf` `.tfvars`
@@ -72,9 +70,9 @@ terraform plan -var "location=West US"
 terraform apply -var "location=West US"
 ```
 
-Storing provider related credential in source controll is not at all an option, make sure you are not storing that in version contol. There are several option you can follow for that:
+>Storing provider related credential in source controll is not at all an option, make sure you are not storing that in version contol. There are several option you can follow for that:
 
-*procedure-1*
+*Option-1*
 
 Create an env file and keep the details there. The below env variable are specific to azure provider and it will not workfor other module. other module related env variable name can be found in the official docs.
 
