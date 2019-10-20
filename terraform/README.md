@@ -114,3 +114,19 @@ variable "amis" {
 ```
 The map can be used like `var.amis[var.region]`
 command line `terraform apply -var 'amis={ us-east-1 = "foo", us-west-2 = "bar" }'`
+
+
+**Interpolation**
+
+[click](https://www.terraform.io/docs/configuration-0-11/interpolation.html) for official documentation
+
+* count example
+```
+resource "azurerm_virtual_network" "main" {
+  count = length(var.vnet_ips)
+  name                = "vnet0${count.index}"
+  address_space       = [var.vnet_ips[count.index]]
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+}
+```
