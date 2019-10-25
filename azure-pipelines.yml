@@ -16,13 +16,9 @@ steps:
 - script: |
     echo Add other tasks to build, test, and deploy your project.
     echo See https://aka.ms/yaml
+    ls -alGh
   displayName: 'Run a multi-line script'
-
-- task: TerraformTaskV1@0
-  inputs:
-    provider: 'azurerm'
-    command: 'init'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+  
 - task: TerraformCLI@0
   inputs:
     command: 'validate'
