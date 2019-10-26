@@ -22,10 +22,23 @@ steps:
 - task: TerraformTaskV1@0
   inputs:
     provider: 'azurerm'
-    command: 'init'
+    command: 'apply'
     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/vm'
     backendServiceArm: 'arm-principle01'
     backendAzureRmResourceGroupName: 'service01'
     backendAzureRmStorageAccountName: 'service01'
     backendAzureRmContainerName: 'tfstate01'
     backendAzureRmKey: 'Rj1qzGtSTNrePYY9p/KfFpY8SAY55yGWRDfWxwaQ4x0i5jBlAyQDHHFVnBsNQB7zDjAmg93ywiJccBqOO5prhQ=='
+
+- task: TerraformTaskV1@0
+  inputs:
+    provider: 'azurerm'
+    command: 'plan'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/vm'
+    environmentServiceNameAzureRM: 'arm-principle01'
+
+- task: TerraformCLI@0
+  inputs:
+    command: 'apply'
+    environmentServiceName: 'arm-principle01'
+    commandOptions: '-auto-approve'
