@@ -19,10 +19,14 @@ steps:
     ls -alGh
   displayName: 'Run a multi-line script'
 
+- task: TerraformInstaller@0
+  inputs:
+    terraformVersion: '0.12.3'
+
 - task: TerraformTaskV1@0
   inputs:
     provider: 'azurerm'
-    command: 'apply'
+    command: 'init'
     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/vm'
     backendServiceArm: 'arm-principle01'
     backendAzureRmResourceGroupName: 'service01'
@@ -36,9 +40,3 @@ steps:
     command: 'plan'
     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/vm'
     environmentServiceNameAzureRM: 'arm-principle01'
-
-- task: TerraformCLI@0
-  inputs:
-    command: 'apply'
-    environmentServiceName: 'arm-principle01'
-    commandOptions: '-auto-approve'
