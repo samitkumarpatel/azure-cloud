@@ -24,18 +24,18 @@ steps:
     provider: 'azurerm'
     command: 'init'
     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/vm'
-    backendServiceArm: 'arm-principle01'
-    backendAzureRmResourceGroupName: 'service01'
-    backendAzureRmStorageAccountName: 'service01'
-    backendAzureRmContainerName: 'tfstate01'
-    backendAzureRmKey: 'Rj1qzGtSTNrePYY9p/KfFpY8SAY55yGWRDfWxwaQ4x0i5jBlAyQDHHFVnBsNQB7zDjAmg93ywiJccBqOO5prhQ=='
+    backendServiceArm: 'SERVICE_PRINCIPLE_NAME'
+    backendAzureRmResourceGroupName: 'RESOURCE_GROUP_NAME'
+    backendAzureRmStorageAccountName: 'STORAGE_ACCOUNT_NAME'
+    backendAzureRmContainerName: 'CONTAINER_NAME'
+    backendAzureRmKey: 'STORAGE_SECRET'
 
 - task: TerraformTaskV1@0
   inputs:
     provider: 'azurerm'
     command: 'plan'
     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/vm'
-    environmentServiceNameAzureRM: 'arm-principle01'
+    environmentServiceNameAzureRM: 'SERVICE_PRINCIPLE_NAME'
 
 - task: TerraformTaskV1@0
   inputs:
@@ -43,4 +43,4 @@ steps:
     command: 'apply'
     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/vm'
     commandOptions: '-auto-approve'
-    environmentServiceNameAzureRM: 'arm-principle01'
+    environmentServiceNameAzureRM: 'SERVICE_PRINCIPLE_NAME'
