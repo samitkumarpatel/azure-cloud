@@ -36,3 +36,11 @@ steps:
     command: 'plan'
     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/vm'
     environmentServiceNameAzureRM: 'arm-principle01'
+
+- task: TerraformTaskV1@0
+  inputs:
+    provider: 'azurerm'
+    command: 'apply'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/vm'
+    commandOptions: '-auto-approve'
+    environmentServiceNameAzureRM: 'arm-principle01'
