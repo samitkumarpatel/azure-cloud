@@ -18,9 +18,14 @@ steps:
     echo See https://aka.ms/yaml
     ls -alGh
   displayName: 'Run a multi-line script'
-  
-- task: TerraformCLI@0
+
+- task: TerraformTaskV1@0
   inputs:
-    command: 'validate'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-    commandOptions: 'init'
+    provider: 'azurerm'
+    command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/vm'
+    backendServiceArm: 'arm-principle01'
+    backendAzureRmResourceGroupName: 'service01'
+    backendAzureRmStorageAccountName: 'service01'
+    backendAzureRmContainerName: 'tfstate01'
+    backendAzureRmKey: 'Rj1qzGtSTNrePYY9p/KfFpY8SAY55yGWRDfWxwaQ4x0i5jBlAyQDHHFVnBsNQB7zDjAmg93ywiJccBqOO5prhQ=='
