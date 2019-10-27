@@ -1,0 +1,9 @@
+version: '3.3'
+
+services:
+   jenkins:
+     image: jenkins/jenkins:lts
+     volumes:
+       - /apphome:/var/jenkins_home
+     ports:
+     - "8080:8080"
