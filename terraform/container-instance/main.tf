@@ -15,17 +15,18 @@ variable "storagename" {
 }
 
 variable "tags" {
-    type = "map"
+    type = map
 
     default = {
-        env = "development"
+        environment = "Development"
+        automation  = "Terraform"
     }
 }
 
 resource "azurerm_resource_group" "test" {
   name        = var.resource_group_name
   location    = var.location
-  tags = var.tags
+  tags        = var.tags
 }
 
 resource "azurerm_storage_account" "test" {
@@ -33,7 +34,7 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   location                 = var.location
   account_tier             = "Standard"
-  account_replication_type = "GRS"
+  account_replication_type = "LRS"
 
   tags = var.tags
 }
@@ -54,14 +55,20 @@ resource "azurerm_container_group" "test" {
   
   container {
     name   = "jenkins01"
-    image  = "jenkins/jenkins:lts"
-    cpu    = "0.5"
-    memory = "1.5"
-
+    image  = "jenkins/jenkins:latest"
+    cpu    = "3"
+    memory = "4"
+    
+    gpu {
+      count = "4"
+      sku   = "V100" 
+    }
+    
     ports {
       port     = 8080
       protocol = "TCP"
     }
+    
     ports {
       port     = 50000
       protocol = "TCP"
