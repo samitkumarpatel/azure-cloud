@@ -8,7 +8,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 
-
+# vnet
 resource "azurerm_virtual_network" "example" {
   name                = "vnet01"
   address_space       = ["192.168.1.0/24"]
@@ -16,6 +16,7 @@ resource "azurerm_virtual_network" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
+# Bastion
 resource "azurerm_subnet" "example" {
   name                 = "AzureBastionSubnet"
   resource_group_name  = azurerm_resource_group.example.name
@@ -43,14 +44,19 @@ resource "azurerm_bastion_host" "example" {
   }
 }
 
+output "azurerm_bastion_fqdn" {
+  value = azurerm_bastion_host.example.dns_name
+}
+
+
 #vm
-variable "subnet_number" {
+variable "instance_number" {
   default = 2
 }
 
-resource "azurerm_subnet" "example1" {
+resource "azurerm_subnet" "vmsnet" {
   
-  name                 = "snet01"
+  name                 = "vmsnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "192.168.1.0/28"
@@ -58,14 +64,14 @@ resource "azurerm_subnet" "example1" {
 
 resource "azurerm_network_interface" "example" {
   
-  count = var.subnet_number
+  count = var.instance_number
   name                = "ni${count.index}"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
     name                          = "testconfiguration${count.index}"
-    subnet_id                     = azurerm_subnet.example1.id
+    subnet_id                     = azurerm_subnet.vmsnet.id
     private_ip_address_allocation = "Dynamic"
   }
   
@@ -73,7 +79,7 @@ resource "azurerm_network_interface" "example" {
 
 resource "azurerm_virtual_machine" "example" {
   
-  count = var.subnet_number
+  count = var.instance_number
   name                  = "vm${count.index}"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
@@ -94,10 +100,12 @@ resource "azurerm_virtual_machine" "example" {
   }
   os_profile {
     computer_name  = "vm${count.index}"
-    admin_username = "testadmin"
+    admin_username = "labadmin"
     admin_password = "Password1234!"
   }
   os_profile_linux_config {
     disable_password_authentication = false
   }
 }
+
+# app gateway
