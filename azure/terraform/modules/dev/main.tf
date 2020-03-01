@@ -7,7 +7,7 @@ resource "azurerm_resource_group" "main" {
   location = "West Europe"
 }
 
-module "vnet" {
+module "virtualnet" {
   source                    = "../module/vnet"
   resource_group_name       = azurerm_resource_group.main.name
   location                  = azurerm_resource_group.main.location
