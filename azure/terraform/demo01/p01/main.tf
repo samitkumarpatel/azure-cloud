@@ -29,6 +29,10 @@ variable "subnets_list" {
     {
       name  = "snet01",
       address = "10.0.2.0/24"
+    },
+    {
+      name  = "snet02",
+      address = "10.0.3.0/24"
     }
   ]
 }
@@ -79,9 +83,16 @@ resource "azurerm_bastion_host" "example" {
   tags = var.tags
 }
 
+variable "instance" {
+  default = 2
+}
+
+
 #vm
 resource "azurerm_network_interface" "example" {
-  name                = "ni01"
+  count = var.instance
+
+  name                = "ni${count.index}"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
@@ -94,8 +105,10 @@ resource "azurerm_network_interface" "example" {
 }
 
 resource "azurerm_linux_virtual_machine" "example" {
-  name                = "vm01"
-  computer_name       = "vm01"
+  count = var.instance
+
+  name                = "vm${count.index}"
+  computer_name       = "vm${count.index}"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   size                = "Standard_DS1_v2"
@@ -103,10 +116,11 @@ resource "azurerm_linux_virtual_machine" "example" {
   admin_password      = "Password123!"
   disable_password_authentication = false
   network_interface_ids = [
-    azurerm_network_interface.example.id,
+    azurerm_network_interface.example[count.index].id,
   ]
 
   os_disk {
+    name                 = "disk${count.index}vm${count.index}"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
@@ -121,5 +135,99 @@ resource "azurerm_linux_virtual_machine" "example" {
 }
 
 output "vm_private_ip" {
-  value = azurerm_linux_virtual_machine.example.private_ip_address
+  value = {
+    for i in azurerm_linux_virtual_machine.example:
+    i.name => i.private_ip_address
+  }
 }
+
+locals {
+  gateway_public_ip_name    = "nginx-gateway-pip01"
+  frontend_port_name        = "nginx-fe-port80"
+  frontend_ip_name          = "nginx-fe-ip01"
+  backend_pool_name         = "nginx-be-pool01"
+  backend_http_name         = "nginx-be-http80"
+  listner_name              = "nginx-listner01"
+  rule_name                 = "nginx-rule01"
+}
+
+
+#application gateway
+resource "azurerm_public_ip" "network" {
+  name                = "pip02"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  allocation_method   = "Dynamic"
+}
+
+output "application_gateway_public_ip" {
+  value = azurerm_public_ip.network.ip_address
+}
+
+resource "azurerm_application_gateway" "example" {
+  name                = "ag01"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  sku {
+    name     = "Standard_Small"
+    tier     = "Standard"
+    capacity = 2
+  }
+
+  gateway_ip_configuration {
+    name      = local.gateway_public_ip_name
+    subnet_id = element(tolist(azurerm_virtual_network.example.subnet),2).id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+  
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_name
+    public_ip_address_id = azurerm_public_ip.network.id
+  }
+  
+  backend_address_pool {
+    name = local.backend_pool_name
+    ip_addresses = [
+      for n in azurerm_linux_virtual_machine.example:
+      n.private_ip_address
+    ]
+  }
+
+  backend_http_settings {
+    name                  = local.backend_http_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  http_listener {
+    name                           = local.listner_name
+    frontend_ip_configuration_name = local.frontend_ip_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listner_name
+    backend_address_pool_name  = local.backend_pool_name
+    backend_http_settings_name = local.backend_http_name
+  }
+}
+
+# after this login to any VM through bastion host
+# run the below command
+# sudo apt update
+# sudo apt install docker.io
+# sudo usermod -aG docker ${USER}
+# su - ${USER}
+# docker swarm init
+# docker service create --name nginx --publish 80:80 --replicas 1 nginx:latest
+# access the application gateway public , you can see nginx home page
