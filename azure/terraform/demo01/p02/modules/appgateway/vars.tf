@@ -11,6 +11,22 @@ variable "name" {
   default = "ag01"
 }
 
+variable "gateway_config" {
+  type = list
+  value = [
+    {
+      gwPublicIp            = "nginxPublicIp"
+      gwFrontendHttpPort    = "nginxFEPort80"
+      gwFrontendIp          = "nginxFEIpip"
+      gwBackendPool         = "nginxBEPool"
+      gwBackendHttpPort     = "nginxBEhttpPort80"
+      gatewayListner        = "nginxListner"
+      gatewayRule           = "nginxRule"
+    }
+  ]
+}
+
+
 variable "subnetid" {
 
 }
