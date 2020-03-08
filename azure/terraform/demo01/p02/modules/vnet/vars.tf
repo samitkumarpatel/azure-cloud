@@ -7,7 +7,7 @@ variable "location" {
 }
 
 variable "name" {
-    
+    default = "vnet"
 }
 
 variable "vnet_address_space" {

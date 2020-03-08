@@ -9,6 +9,7 @@
 - `example 01`
 ```hcl
 module "vnet" {
+  name                      = "vnet01"
   source                    = "../modules/vnet"
   rg                        = "MyResourceGroupOne"
   location                  = "West Europe"

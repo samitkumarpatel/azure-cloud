@@ -13,7 +13,7 @@ variable "name" {
 
 variable "gateway_config" {
   type = list
-  value = [
+  default = [
     {
       gwPublicIp            = "nginxPublicIp"
       gwFrontendHttpPort    = "nginxFEPort80"
