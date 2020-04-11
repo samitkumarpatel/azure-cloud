@@ -6,7 +6,7 @@ variable "location" {
 
 }
 
-variable "resource_group" { 
+variable "resource_group_name" { 
 
 }
 
@@ -40,4 +40,12 @@ variable "gateway_public_ip_name" {
 
 variable "gateway_fe_ip_name" {
   default   = "gw_fe_ip"
+}
+
+variable "tags" {
+  default   =   {}
+}
+
+variable "subnet_id" {
+  
 }

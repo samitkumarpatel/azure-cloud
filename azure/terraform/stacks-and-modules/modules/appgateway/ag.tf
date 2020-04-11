@@ -1,13 +1,14 @@
 resource "azurerm_public_ip" "network" {
-  name                = "gw-pip01"
-  resource_group_name = var.resource_group
+  name                = "ag-pip01"
+  resource_group_name = var.resource_group_name
   location            = var.location
   allocation_method   = "Dynamic"
+  tags                = var.tags
 }
 
 resource "azurerm_application_gateway" "example" {
-  name                = "ag01"
-  resource_group_name = var.resource_group
+  name                = var.name
+  resource_group_name = var.resource_group_name
   location            = var.location
 
   sku {
@@ -18,7 +19,7 @@ resource "azurerm_application_gateway" "example" {
   
   gateway_ip_configuration {
     name      = var.gateway_public_ip_name
-    subnet_id = element(tolist(azurerm_virtual_network.example.subnet),0).id
+    subnet_id = var.subnet_id
   }
   
   frontend_ip_configuration {
@@ -97,5 +98,5 @@ resource "azurerm_application_gateway" "example" {
       }
   }
   
-  tags  =   azurerm_resource_group.example.tags
+  tags  =   var.tags
 }

@@ -1,3 +1,28 @@
+### stacks and module
+
+stacks and module is an demonstration to build a reusable module and use it as an stack
+
+Folder structure
+
+```
+stacks-and-module
+|___modules
+|___dev
+|___prod
+
+```
+
+module folder contain several module like virtualnet, virtualmachine, bastion and appgateway with several pre-defined variable and output
+
+dev and prod folder are called it as dev-stacks and prod-stacks
+
+In general a stacks can be look like :
+
+Note : All the variable hardcoded in this file can be go to vars.tf file to minimise the complexity around Read
+
+The below stack can create virtualnet, virtualmachine based on your needs and will be secure with a bastion host (It means, you can only ssh to the vm from bastion hosts) and application gateway with one public ips to access the deployed resources.
+
+```yml
 provider "azurerm" {
   version = "=2.0.0"
   features {}
@@ -77,3 +102,5 @@ module "appgateway" {
   ]
   tags      =   azurerm_resource_group.main.tags
 }
+
+```

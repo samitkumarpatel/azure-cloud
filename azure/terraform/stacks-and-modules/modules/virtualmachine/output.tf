@@ -1,4 +1,4 @@
-output "vm_private_ip" {
+output "vmips_with_name" {
   value = {
     for i in azurerm_linux_virtual_machine.example :
     i.name => i.private_ip_address
