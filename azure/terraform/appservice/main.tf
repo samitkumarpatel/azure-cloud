@@ -1,26 +1,31 @@
+provider "azurerm" {
+  version = "=2.0.0"
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "tutorial01"
-  location = "westus2"
+  location = "westeurope"
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "tutorial01poc01"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_app_service_plan" "test" {
-  name                = "${azurerm_resource_group.test.name}-asp"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "asp01"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "Linux"
   reserved            = true
 
@@ -31,17 +36,17 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_app_service" "test" {
-  name                = "${azurerm_resource_group.test.name}-appservice"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  name                = "service0001"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
   
   storage_account {
       name          = "volume01"
       type          = "AzureFiles"
-      share_name    = "${azurerm_storage_container.test.name}"
-      account_name  = "${azurerm_storage_account.test.name}"
-      access_key    = "${azurerm_storage_account.test.primary_access_key}"
+      share_name    = azurerm_storage_container.test.name
+      account_name  = azurerm_storage_account.test.name
+      access_key    = azurerm_storage_account.test.primary_access_key
       mount_path    = "/apphome"
   }
   site_config {

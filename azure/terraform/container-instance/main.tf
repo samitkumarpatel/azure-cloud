@@ -55,7 +55,7 @@ resource "azurerm_container_group" "test" {
   
   container {
     name   = "jenkins01"
-    image  = "jenkins/jenkins:latest"
+    image  = "jenkins/jenkins:lts"
     cpu    = "3"
     memory = "4"
     
