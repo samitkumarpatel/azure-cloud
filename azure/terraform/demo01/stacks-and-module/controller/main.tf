@@ -46,3 +46,22 @@ module "vm" {
   subnetid            =   element(module.vnet.subnets,1).id
   tags                =   azurerm_resource_group.example.tags
 }
+
+resource "azurerm_storage_account" "test" {
+  name                     = "jenkinsstorage0001"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = azurerm_resource_group.example.tags
+}
+
+resource "azurerm_storage_share" "test" {
+  name                 = "jenkins01"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 50
+}
+
+# mount a storage in the vm
+#sudo mount -t cifs //jenkinsstorage0001.file.core.windows.net/jenkins01 /mnt/MyAzureFileShare -o vers=3.0,username=jenkinsstorage0001,password=CKwhdG1MXQbmCxEs+0pU7ycc6ikzoeeqQLmmaTmR5ldL8XmMZ0iomfFfZzXXj+EpTvfKHdp8Zc0KzpRDoGGmQg==,dir_mode=0777,file_mode=0777,serverino

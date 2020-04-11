@@ -11,33 +11,32 @@ resource "azurerm_network_interface" "example" {
   }
 }
 
-resource "azurerm_virtual_machine" "example" {
-  count                           = var.instance_count
-  name                            = "vm${count.index}"
-  location                        = var.location
-  resource_group_name             = var.resource_group
-  network_interface_ids           = ["${azurerm_network_interface.example[count.index].id}"]
-  vm_size                         = "Standard_DS1_v2"
+resource "azurerm_linux_virtual_machine" "example" {
+  count               = var.instance_count
 
-  storage_image_reference {
-    publisher                     = "Canonical"
-    offer                         = "UbuntuServer"
-    sku                           = "16.04-LTS"
-    version                       = "latest"
-  }
-  storage_os_disk {
-    name                          = "vmd${count.index}"
-    caching                       = "ReadWrite"
-    create_option                 = "FromImage"
-    managed_disk_type             = "Standard_LRS"
-  }
-  os_profile {
-    computer_name                 = "vm${count.index}"
-    admin_username                = "labadmin"
-    admin_password                = "Password1234!"
+  name                = "${var.name}_vm${count.index}"
+  computer_name       = "${var.name}_vm${count.index}"
+  resource_group_name = var.resource_group
+  location            = var.location
+  size                = "Standard_DS1_v2"
+  admin_username      = "adminuser"
+  admin_password      = "Password123!"
+  disable_password_authentication = false
+  network_interface_ids = [
+    azurerm_network_interface.example[count.index].id,
+  ]
+
+  os_disk {
+    name                 = "disk${count.index}vm${count.index}"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
-  os_profile_linux_config {
-    disable_password_authentication = false
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
   }
+  tags = var.tags
 }

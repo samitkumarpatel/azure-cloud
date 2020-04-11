@@ -1,95 +1,14 @@
-provider "azurerm" {
-  version = "=2.0.0"
-  features {}
-}
-
-resource "azurerm_resource_group" "example" {
-  name                =   "p03"
-  location            =   "Wes tEurope"
-  tags                =  {
-      env   =   "development"
-  }
-}
-
-variable "subnets_list" {
-  type  = list
-  default = [
-    {
-      name  = "AppgatewaySubnet",
-      address = "10.0.1.0/24"
-    }
-  ]
-}
-
-resource "azurerm_virtual_network" "example" {
-  name                = "vnet02"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  address_space       = ["10.0.0.0/16"]
-  
-  dynamic "subnet" {
-    for_each = [for s in var.subnets_list: {
-      name   = s.name
-      prefix = s.address
-    }]
-
-    content {
-      name           = subnet.value.name
-      address_prefix = subnet.value.prefix
-    }
-  }
-
-  tags = azurerm_resource_group.example.tags
-}
-
 resource "azurerm_public_ip" "network" {
-  name                = "pip01"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+  name                = "gw-pip01"
+  resource_group_name = var.resource_group
+  location            = var.location
   allocation_method   = "Dynamic"
 }
 
-output "application_gateway_public_ip" {
-  value = azurerm_public_ip.network.ip_address
-}
-
-variable "gateway_config" {
-  type = list
-  default = [
-    { 
-      gwFrontendHttpPortName    = "nginx_fe_80"
-      gwBackendPoolName         = "nginx_be_pool"
-      gwBackendPoolIps          = ["10.0.0.1","10.0.0.2"]
-      gwBackendHttpPortName     = "nginx_be_http_80"
-      port                      = 80
-      gatewayListnerName        = "nginx_listner"
-      gatewayRuleName           = "nginx_rule"
-    },
-    {
-      gwFrontendHttpPortName    = "jenkins_fe_8080"
-      gwBackendPoolName         = "jenkins_be_pool"
-      gwBackendPoolIps          = ["10.0.0.3","10.0.0.4"]
-      gwBackendHttpPortName     = "jenkins_be_http_8080"
-      port                      = 8080
-      gatewayListnerName        = "jenkins_listner"
-      gatewayRuleName           = "jenkins_rule"
-    }
-  ]
-}
-
-variable "gateway_public_ip_name" {
-  default   = "gw_pub_ip"
-}
-
-variable "gateway_fe_ip_name" {
-  default   = "gw_fe_ip"
-}
-
-
 resource "azurerm_application_gateway" "example" {
   name                = "ag01"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+  resource_group_name = var.resource_group
+  location            = var.location
 
   sku {
     name     = "Standard_Small"
@@ -121,11 +40,11 @@ resource "azurerm_application_gateway" "example" {
   dynamic "backend_address_pool" {
       for_each  =  [ for s in var.gateway_config: {
         name          = s.gwBackendPoolName
-        ip_addresses  = s.gwBackendPoolIps
+        ip_addresses = s.gwBackendPoolIps
       }]
       content {
         name          = backend_address_pool.value.name
-        ip_addresses  = backend_address_pool.value.ip_addresses
+        ip_addresses = backend_address_pool.value.ip_addresses
       }
   }
 
@@ -180,4 +99,3 @@ resource "azurerm_application_gateway" "example" {
   
   tags  =   azurerm_resource_group.example.tags
 }
-
