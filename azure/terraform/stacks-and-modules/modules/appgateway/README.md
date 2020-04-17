@@ -19,20 +19,24 @@ module "appgateway" {
     {
       gwFrontendHttpPortName    = "NginxFe80"
       gwBackendPoolName         = "NginxBePool"
-      gwBackendPoolIps          = module.vm.vmips
+      gwBackendPoolIps          = module.vm01.vmips
       gwBackendHttpPortName     = "NginxBeHttp80"
       port                      = 80
       gatewayListnerName        = "NginxListner"
       gatewayRuleName           = "NginxRule"
+      probe                     = { name: "nginx",path:"/" }
+      cookie                    =  "Disabled"
     },
     {
       gwFrontendHttpPortName    = "JenkinsFe8080"
       gwBackendPoolName         = "JenkinsBePool"
-      gwBackendPoolIps          = module.vm.vmips
+      gwBackendPoolIps          = module.vm02.vmips
       gwBackendHttpPortName     = "JenkinsBeHttp8080"
       port                      = 8080
       gatewayListnerName        = "JenkinsListner"
       gatewayRuleName           = "JenkinsRule"
+      probe                     = { name: "nginx", url:"/"}
+      cookie                    =  "Disabled"
     }
   ]
   tags      =   azurerm_resource_group.main.tags

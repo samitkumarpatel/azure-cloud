@@ -1,6 +1,6 @@
 resource "azurerm_network_interface" "example" {
   count                           = var.instance_count
-  name                            = "ni${count.index}"
+  name                            = "ni${count.index}-vm${count.index}"
   location                        = var.location
   resource_group_name             = var.resource_group_name
 
@@ -16,8 +16,8 @@ resource "azurerm_network_interface" "example" {
 resource "azurerm_linux_virtual_machine" "example" {
   count               = var.instance_count
 
-  name                = "${var.name}-vm${count.index}"
-  computer_name       = "${var.name}-vm${count.index}"
+  name                = "vm${count.index}"
+  computer_name       = "vm${count.index}"
   resource_group_name = var.resource_group_name
   location            = var.location
   size                = "Standard_DS1_v2"
@@ -29,7 +29,7 @@ resource "azurerm_linux_virtual_machine" "example" {
   ]
 
   os_disk {
-    name                 = "disk${count.index}-${var.name}-vm${count.index}"
+    name                 = "disk${count.index}-vm${count.index}"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }

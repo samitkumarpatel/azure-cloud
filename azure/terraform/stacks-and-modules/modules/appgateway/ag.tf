@@ -48,14 +48,31 @@ resource "azurerm_application_gateway" "example" {
         ip_addresses = backend_address_pool.value.ip_addresses
       }
   }
+  
+  dynamic "probe" {
+    for_each  = [for s in var.gateway_config: {
+        name  = s.probe.name
+        path  = s.probe.path
+    }]
+    content {
+        name  = probe.value.name
+        host  = "127.0.0.1"
+        interval  = "30" 
+        protocol = "http"
+        path  = probe.value.path
+        timeout = "30"
+        unhealthy_threshold = "3"
+    }
+  }
 
   dynamic "backend_http_settings" {
       for_each  =  [ for s in var.gateway_config: {
         name                  = s.gwBackendHttpPortName
-        cookie_based_affinity = "Disabled"
+        cookie_based_affinity = s.cookie
         port                  = s.port
         protocol              = "Http"
-        request_timeout       = 1
+        request_timeout       = 120
+        probe_name            = s.probe.name
       }]
       content {
         name                  = backend_http_settings.value.name
@@ -63,6 +80,7 @@ resource "azurerm_application_gateway" "example" {
         port                  = backend_http_settings.value.port
         protocol              = backend_http_settings.value.protocol
         request_timeout       = backend_http_settings.value.request_timeout
+        probe_name            = backend_http_settings.value.probe_name
       }
   }
 
