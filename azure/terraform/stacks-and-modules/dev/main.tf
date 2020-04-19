@@ -33,7 +33,7 @@ module "bastion" {
   location              =   azurerm_resource_group.main.location
   #name                 =   "bastion01"
   #public_ip_name       =   "bastionpip01" 
-  subnet_id             =   element(module.virtualnet.subnetsIds,0).id
+  subnet_id             =   element(module.virtualnet.subnetsIds,0)
   tags                  =   azurerm_resource_group.main.tags
 }
 
@@ -44,7 +44,7 @@ module "vm" {
   location              =   azurerm_resource_group.main.location
   instance_count        =   2
   #name                 =   "dev"
-  subnet_id             =   element(module.virtualnet.subnetsIds,1).id
+  subnet_id             =   element(module.virtualnet.subnetsIds,1)
   tags                  =   azurerm_resource_group.main.tags
 }
 
@@ -54,7 +54,7 @@ module "appgateway" {
   source                        =   "../modules/appgateway"
   resource_group_name           =   azurerm_resource_group.main.name
   location                      =   azurerm_resource_group.main.location
-  subnet_id                     =   element(module.virtualnet.subnetsIds,2).id
+  subnet_id                     =   element(module.virtualnet.subnetsIds,2)
   gateway_config                =   [
     {
       gwFrontendHttpPortName    = "NginxFe80"

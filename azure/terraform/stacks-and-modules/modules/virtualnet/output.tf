@@ -1,5 +1,9 @@
+# List output
 output "subnetsIds" {
-  value = tolist(azurerm_virtual_network.main.subnet)
+  value = [
+    for i in azurerm_virtual_network.main.subnet :
+      i.id
+  ]
 }
 
 output "vnetid" {

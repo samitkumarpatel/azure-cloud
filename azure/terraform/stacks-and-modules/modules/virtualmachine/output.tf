@@ -1,3 +1,4 @@
+# Map output
 output "vmips_with_name" {
   value = {
     for i in azurerm_linux_virtual_machine.example :
@@ -5,6 +6,7 @@ output "vmips_with_name" {
   }
 }
 
+# List output
 output "vmips" {
   value = [
     for i in azurerm_linux_virtual_machine.example :
