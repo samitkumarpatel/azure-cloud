@@ -89,22 +89,6 @@ output "appservice_identity" {
     value   = azurerm_app_service.example.identity 
 }
 
-locals { 
-  outbound_ips =  split(",", azurerm_app_service.example.outbound_ip_addresses)
-}
-
-
-resource "azurerm_redis_firewall_rule" "example" {
-  count               = length(local.outbound_ips)
-  name                = "rule_${count.index}"
-  redis_cache_name    = azurerm_redis_cache.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  start_ip            = element(local.outbound_ips,count.index)
-  end_ip              = element(local.outbound_ips,count.index)
-  depends_on = [
-    azurerm_app_service.example
-  ]
-}
 
 data "azurerm_client_config" "current" {}
 
@@ -165,3 +149,32 @@ resource "azurerm_key_vault_access_policy" "example1" {
     "get", "list"
   ]
 }
+
+# resource "local_file" "deploy_stack" {
+#   content = templatefile("${path.module}/terraform.tfvars.tmpl",
+#     {
+#       resource_group_name   = azurerm_resource_group.example.name
+#       redis_cache_name      = azurerm_redis_cache.example.name
+#       message               = "Hello World!"
+#     }
+#   )
+#   filename = "${path.module}/dependent/terraform.tfvars"
+# }
+
+# data "azurerm_app_service" "exampled" {
+#   name                  =  azurerm_app_service.example.name
+#   resource_group_name   =  azurerm_resource_group.example.name
+# }
+
+# locals {
+#   outbound_ips          =  split(",", data.azurerm_app_service.exampled.outbound_ip_addresses)
+# }
+
+# resource "azurerm_redis_firewall_rule" "exampled" {
+#   count                 =  length(local.outbound_ips)
+#   name                  =  "rule_${count.index}"
+#   redis_cache_name      =  azurerm_redis_cache.example.name
+#   resource_group_name   =  azurerm_resource_group.example.name
+#   start_ip              =  element(local.outbound_ips,count.index)
+#   end_ip                =  element(local.outbound_ips,count.index)
+# }
